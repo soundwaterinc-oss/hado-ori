@@ -19,7 +19,7 @@ export const BUILTIN_PRESETS: Preset[] = [
     name: "Hijaz bazaar",
     params: { scaleId: "hijaz", rhythmId: "maqsum", fRoot: 98, bpm: 104, chordEvery: 1,
       patternFamily: "GIRIH", palette: "jewel", symmetry: 8, geoMode: "VORO", cellCount: 40,
-      soloDensity: 0.6, soloVib: 0.5, reverbMix: 0.24, feedAmount: 0.35 },
+      soloDensity: 0.6, reverbMix: 0.24, feedAmount: 0.35 },
   },
   {
     name: "Gamelan",
