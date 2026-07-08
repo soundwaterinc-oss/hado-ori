@@ -18,8 +18,10 @@ import { TdBridge } from "./io/tdBridge";
 import { OriUI, type UIHooks } from "./ui/layout";
 import { WeaveSequencer } from "./seq/weave";
 import { Composer } from "./music/composer";
+import { Arranger } from "./music/arranger";
 import { RHYTHMS } from "./music/rhythms";
 import { scaleLength } from "./music/scales";
+import type { TimbreId } from "./audio/timbres";
 
 const FAMILIES = ["MANDALA", "KILIM", "GIRIH", "KNOT", "KOLAM"];
 const PALETTES = ["indigo", "jewel", "earth", "ochre", "mono", "sunset"];
@@ -37,12 +39,14 @@ const mutator = new Mutator();
 const midi = new MidiOut();
 const td = new TdBridge();
 const composer = new Composer();
+const arranger = new Arranger();
 
 // visual music state (decays each frame)
 let patternHue = 0.5;
 let pulse = 0;
 let soloFlash = 0;
 let chordName = "";
+let stageInfo = "";
 
 function rhythm(): typeof RHYTHMS[string] { return RHYTHMS[state.rhythmId as string] ?? RHYTHMS.teental; }
 function rebakeGeometry(): void { field.uploadV(potential.bake(state)); }
@@ -71,10 +75,17 @@ const seq = new WeaveSequencer({
   now: () => audio.now,
   composer,
   rhythm,
-  playChord: (freqs, time) => { audio.chord.play(freqs, time, state); pulse = Math.max(pulse, 0.6); },
-  playRiff: (freq, time, vel, dur) => { audio.riff.note(freq, time, vel, dur, state); pulse = Math.min(1, pulse + 0.35); },
+  playChord: (freqs, time, dur) => {
+    for (const f of freqs) audio.chord.note(f, time, 0.7, dur, state.chordTimbre as TimbreId, state.chordCutoff as number);
+    pulse = Math.max(pulse, 0.6);
+  },
+  playRiff: (freq, time, vel, dur) => {
+    audio.riff.note(freq, time, vel, dur, state.riffTimbre as TimbreId, state.riffTone as number);
+    pulse = Math.min(1, pulse + 0.35);
+  },
   playSolo: (freq, time, vel, dur) => {
-    audio.solo.note(freq, time, vel, dur, state); soloFlash = 1;
+    audio.solo.note(freq, time, vel, dur, state.soloTimbre as TimbreId, state.soloCutoff as number);
+    soloFlash = 1;
     midi.noteOn(freq, vel, dur, state.midiCh as number);
   },
   soloProbe,
@@ -102,7 +113,7 @@ function observe(x: number, y: number): void {
   // a manual solo flourish at the clicked height
   const deg = composer.soloDegree(y, true);
   const t = audio.now;
-  audio.solo.note(composer.degToFreq(deg), t, 0.85, 0.4, state);
+  audio.solo.note(composer.degToFreq(deg), t, 0.85, 0.4, state.soloTimbre as TimbreId, state.soloCutoff as number);
   soloFlash = 1;
   features.collapse = { x, y, localV: 0, nearestMode: 0 };
   td.sendEvent("collapse", { x, y, pitch: composer.degToFreq(deg), vel: 0.85 });
@@ -208,6 +219,18 @@ function logic(): void {
   for (let i = 0; i < d.length; i += 4) if (d[i] > mx) mx = d[i];
   fieldMax = mx;
   seq.schedule(state);
+  if (state.arrangeOn as boolean) {
+    const info = arranger.update(seq.cycle, state, composer, {
+      engine: state.engine as string, climate: state.climate as string,
+      current: state.current as string, soil: state.soil as string, weather: state.weather as string,
+    });
+    if (info) {
+      composer.regenRiff(rhythm());
+      if (info.rhythmChanged) ui.setCycleLength(rhythm().length);
+      ui.refreshAll();
+      stageInfo = `stage ${info.stage} · sec ${info.section}`;
+    }
+  }
   audio.update(dt, features, state, now);
   mutator.update(dt, features.analysis, state);
   midi.sendCC(features, state, now);
@@ -245,7 +268,7 @@ function frame(): void {
   };
   field.renderPattern(ps, ui.canvas.width, ui.canvas.height);
   ui.setMeter(features.analysis.rms);
-  ui.setHud(`${state.scaleId} · ${state.rhythmId} · ${chordName} · ${seq.running ? "▶" : "■"}${state.freeze ? " · FROZEN" : ""}`);
+  ui.setHud(`${state.scaleId} · ${state.rhythmId} · ${chordName}${stageInfo ? " · " + stageInfo : ""} · ${seq.running ? "▶" : "■"}${state.freeze ? " · FROZEN" : ""}`);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

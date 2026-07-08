@@ -16,6 +16,8 @@ export class Composer {
   scaleId = "yaman";
   chordRoot = 0;         // scale degree of the current chord root
   chordSize = 3;
+  moveBias = 0.5;        // arranger: 0 = cadential, 1 = exploratory
+  baseShift = 0;         // arranger: modulation (scale-degree shift of the tonal centre)
   riff: RiffNote[] = [];
   private rng = mulberry32(1);
   private seed = 1;
@@ -29,14 +31,15 @@ export class Composer {
   // choose the next chord root; tension (0..1, from field flux) biases exploration vs cadence
   advanceChord(tension: number): void {
     const n = scaleLength(this.scaleId);
-    if (this.rng() < (1 - tension) * 0.4) { this.chordRoot = 0; return; } // cadence to I
-    const moves = tension > 0.5 ? [3, 4, -4, 1, 5, -3] : [4, -4, 3, -3, 2, 0];
+    const ex = Math.min(1, tension * 0.55 + this.moveBias * 0.6);
+    if (this.rng() < (1 - ex) * 0.45) { this.chordRoot = 0; return; } // cadence to I
+    const moves = ex > 0.5 ? [3, 4, -4, 1, 5, -3] : [4, -4, 3, -3, 2, 0];
     const mv = moves[Math.floor(this.rng() * moves.length)];
     this.chordRoot = ((this.chordRoot + mv) % n + n) % n;
   }
 
   chordFreqs(octave = 0): number[] {
-    const degs = chordDegrees(this.chordRoot, this.chordSize);
+    const degs = chordDegrees(this.chordRoot + this.baseShift, this.chordSize);
     return degs.map((d) => degreeToFreq(this.tonicHz, this.scaleId, d + octave * scaleLength(this.scaleId)));
   }
 
@@ -74,6 +77,6 @@ export class Composer {
       for (const tt of tones) { const d = Math.min(Math.abs(within - tt), n - Math.abs(within - tt)); if (d < bd) { bd = d; best = tt; } }
       deg = deg - within + best;
     }
-    return deg;
+    return deg + this.baseShift;
   }
 }

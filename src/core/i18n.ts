@@ -32,6 +32,9 @@ const PARAM_JA: Partial<Record<ParamName, string>> = {
   feedAmount: "帰還量", mutateRate: "変性レート", mutateSmooth: "変性平滑",
   rmsTarget: "RMS目標", centTarget: "重心目標", freeze: "凍結",
   midiEnable: "MIDI有効", midiCh: "MIDIチャンネル", wsRate: "WS送信レート", sendField: "場送信", fieldRate: "場レート",
+  chordTimbre: "コード音色", riffTimbre: "リフ音色", soloTimbre: "ソロ音色",
+  arrangeOn: "自動展開", engine: "展開エンジン", climate: "気候帯", current: "潮流", soil: "土質", weather: "天気",
+  sectionBars: "セクション小節", stageBars: "ステージ小節",
 };
 
 const DESC_EN: Partial<Record<ParamName, string>> = {
@@ -64,6 +67,15 @@ const DESC_EN: Partial<Record<ParamName, string>> = {
   feedAmount: "depth of audio → geometry feedback (0 = off)", mutateRate: "how often geometry mutates", mutateSmooth: "smoothing of mutation",
   rmsTarget: "loudness the feedback aims for", centTarget: "brightness the feedback aims for", freeze: "pause the mutation loop",
   midiEnable: "enable WebMIDI out", midiCh: "MIDI channel", wsRate: "TouchDesigner JSON rate", sendField: "stream |ψ|² to TD", fieldRate: "TD field rate",
+  chordTimbre: "instrument for the chord pad", riffTimbre: "instrument for the riff", soloTimbre: "instrument for the solo",
+  arrangeOn: "auto-evolve the arrangement every section / stage",
+  engine: "how factors map to development: PLANT growth · PHYSICS oscillation · GEOMETRY quantised",
+  climate: "factor: tropical→busy … polar→sparse (energy & tempo)",
+  current: "factor: warm / cold / gyre / upwelling (motion & solo activity)",
+  soil: "factor: sand / clay / loam / volcanic (richness & pattern)",
+  weather: "factor: clear / rain / storm / fog (density & space)",
+  sectionBars: "cycles per section — a new variation each section",
+  stageBars: "cycles per stage of the 1→5 arc (intro→climax→resolve)",
 };
 const DESC_JP: Partial<Record<ParamName, string>> = {
   geoMode: "ポテンシャルVを作る植物幾何", geoModeA: "HYBRIDの素材A", geoModeB: "HYBRIDの素材B",
@@ -95,6 +107,15 @@ const DESC_JP: Partial<Record<ParamName, string>> = {
   feedAmount: "音→幾何フィードバックの深さ（0で停止）", mutateRate: "幾何が変性する頻度", mutateSmooth: "変性の平滑化",
   rmsTarget: "目標音量", centTarget: "目標の明るさ", freeze: "変性ループ停止",
   midiEnable: "WebMIDI出力を有効化", midiCh: "MIDIチャンネル", wsRate: "TD JSON送信レート", sendField: "|ψ|²をTDへ送出", fieldRate: "TD場レート",
+  chordTimbre: "コードパッドの楽器", riffTimbre: "リフの楽器", soloTimbre: "ソロの楽器",
+  arrangeOn: "セクション/ステージごとに展開を自動変性",
+  engine: "ファクターの写像: PLANT成長 · PHYSICS振動 · GEOMETRY量子化",
+  climate: "ファクター: 熱帯→密…極地→疎（エネルギー・テンポ）",
+  current: "ファクター: 暖流/寒流/環流/湧昇（動き・ソロ活性）",
+  soil: "ファクター: 砂/粘土/壌土/火山（豊かさ・文様）",
+  weather: "ファクター: 快晴/雨/嵐/霧（密度・空間）",
+  sectionBars: "1セクションの周期数——毎セクション新しい変化",
+  stageBars: "1→5アークの各ステージの周期数（序→クライマックス→終）",
 };
 export function paramDesc(name: ParamName): string { return (current === "JP" ? DESC_JP[name] : DESC_EN[name]) ?? ""; }
 export function paramLabel(name: ParamName): string {
@@ -105,8 +126,8 @@ export function paramLabel(name: ParamName): string {
 const STRINGS: Record<Lang, Record<string, string>> = {
   EN: {
     "tab.PERFORM": "PLAY", "tab.INFO": "INFO", "tab.GEO": "GEO", "tab.FIELD": "FIELD",
-    "tab.SCALE": "SCALE", "tab.RHYTHM": "RHYTHM", "tab.VOICES": "VOICES", "tab.PATTERN": "PATTERN",
-    "tab.MUTATE": "MUTATE", "tab.IO": "IO",
+    "tab.SCALE": "SCALE", "tab.RHYTHM": "RHYTHM", "tab.TIMBRE": "TIMBRE", "tab.EVOLVE": "EVOLVE",
+    "tab.VOICES": "VOICES", "tab.PATTERN": "PATTERN", "tab.MUTATE": "MUTATE", "tab.IO": "IO",
     play: "▶ play", stop: "■ stop", regen: "↻ regen", resetPsi: "reset ψ",
     save: "save", export: "export", import: "import", connect: "connect", disconnect: "disconnect", enableMidi: "enable midi",
     presetName: "preset name", macros: "MACROS", output: "OUTPUT", presets: "PRESETS",
@@ -128,8 +149,8 @@ const STRINGS: Record<Lang, Record<string, string>> = {
   },
   JP: {
     "tab.PERFORM": "演奏", "tab.INFO": "説明", "tab.GEO": "幾何", "tab.FIELD": "場",
-    "tab.SCALE": "音階", "tab.RHYTHM": "律動", "tab.VOICES": "声部", "tab.PATTERN": "文様",
-    "tab.MUTATE": "変性", "tab.IO": "入出力",
+    "tab.SCALE": "音階", "tab.RHYTHM": "律動", "tab.TIMBRE": "音色", "tab.EVOLVE": "展開",
+    "tab.VOICES": "声部", "tab.PATTERN": "文様", "tab.MUTATE": "変性", "tab.IO": "入出力",
     play: "▶ 再生", stop: "■ 停止", regen: "↻ 再生成", resetPsi: "場リセット",
     save: "保存", export: "書出", import: "読込", connect: "接続", disconnect: "切断", enableMidi: "MIDI有効化",
     presetName: "プリセット名", macros: "マクロ", output: "出力", presets: "プリセット",

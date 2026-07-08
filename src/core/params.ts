@@ -3,8 +3,11 @@
 // scales & rhythms, with morphing ethnic-geometry visuals.
 import { SCALE_IDS } from "../music/scales";
 import { RHYTHM_IDS } from "../music/rhythms";
+import { TIMBRE_IDS } from "../audio/timbres";
+import { ENGINES, CLIMATES, CURRENTS, SOILS, WEATHERS } from "../music/arranger";
 
-export type ParamTab = "PERFORM" | "GEO" | "FIELD" | "SCALE" | "RHYTHM" | "VOICES" | "PATTERN" | "MUTATE" | "IO" | "INFO";
+export type ParamTab = "PERFORM" | "GEO" | "FIELD" | "SCALE" | "RHYTHM" | "TIMBRE" | "VOICES"
+  | "EVOLVE" | "PATTERN" | "MUTATE" | "IO" | "INFO";
 
 export interface NumberParam { kind: "number"; tab: ParamTab; label: string; min: number; max: number; def: number; step?: number; unit?: string }
 export interface EnumParam { kind: "enum"; tab: ParamTab; label: string; options: readonly string[]; def: string }
@@ -62,6 +65,21 @@ export const PARAMS = {
   rhythmId: e("RHYTHM", "rhythm", RHYTHM_IDS, "teental"),
   bpm: n("RHYTHM", "bpm", 40, 220, 96, 1),
   chordEvery: n("RHYTHM", "chord / cycles", 1, 4, 1, 1),
+
+  // ── TIMBRE ───────────────────────────────────────────────────────────
+  chordTimbre: e("TIMBRE", "chord timbre", TIMBRE_IDS, "pad"),
+  riffTimbre: e("TIMBRE", "riff timbre", TIMBRE_IDS, "rhodes"),
+  soloTimbre: e("TIMBRE", "solo timbre", TIMBRE_IDS, "prophet"),
+
+  // ── EVOLVE (auto arrangement) ────────────────────────────────────────
+  arrangeOn: b("EVOLVE", "auto evolve", true),
+  engine: e("EVOLVE", "engine", ENGINES, "PLANT"),
+  climate: e("EVOLVE", "climate", CLIMATES, "temperate"),
+  current: e("EVOLVE", "current", CURRENTS, "warm"),
+  soil: e("EVOLVE", "soil", SOILS, "loam"),
+  weather: e("EVOLVE", "weather", WEATHERS, "clear"),
+  sectionBars: n("EVOLVE", "section bars", 4, 32, 16, 1),
+  stageBars: n("EVOLVE", "stage bars", 8, 64, 32, 1),
 
   // ── VOICES ───────────────────────────────────────────────────────────
   chordOn: b("VOICES", "chord on", true),

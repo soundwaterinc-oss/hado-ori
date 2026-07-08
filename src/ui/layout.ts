@@ -5,8 +5,8 @@ import { makeControl } from "./knob";
 import { WeaveSequencer } from "../seq/weave";
 import { t, getLang, toggleLang, paramLabel, paramDesc } from "../core/i18n";
 
-const TABS: ParamTab[] = ["PERFORM", "GEO", "FIELD", "SCALE", "RHYTHM", "VOICES", "PATTERN", "MUTATE", "IO", "INFO"];
-const PARAM_TABS: ParamTab[] = ["GEO", "FIELD", "SCALE", "RHYTHM", "VOICES", "PATTERN", "MUTATE", "IO"];
+const TABS: ParamTab[] = ["PERFORM", "SCALE", "RHYTHM", "TIMBRE", "EVOLVE", "VOICES", "PATTERN", "GEO", "FIELD", "MUTATE", "IO", "INFO"];
+const PARAM_TABS: ParamTab[] = ["SCALE", "RHYTHM", "TIMBRE", "EVOLVE", "VOICES", "PATTERN", "GEO", "FIELD", "MUTATE", "IO"];
 const MACROS: ParamName[] = ["chordLevel", "riffLevel", "soloLevel", "reverbMix"];
 const PERFORM_MACROS: ParamName[] = ["soloDensity", "soloCutoff", "chordCutoff", "reverbMix", "bpm", "morphAmt"];
 

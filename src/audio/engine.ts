@@ -3,14 +3,14 @@
 import type { HadoFeatures } from "../core/features";
 import type { ParamState } from "../core/params";
 import { FxChain } from "./fx";
-import { ChordVoice, RiffVoice, SoloVoice } from "./voices";
+import { Instrument } from "./voices";
 import { Analyser } from "./analyser";
 
 export class AudioEngine {
   readonly ctx: AudioContext;
-  readonly chord: ChordVoice;
-  readonly riff: RiffVoice;
-  readonly solo: SoloVoice;
+  readonly chord: Instrument;
+  readonly riff: Instrument;
+  readonly solo: Instrument;
   readonly analyser: Analyser;
   private fx: FxChain;
   private master: GainNode;
@@ -52,9 +52,9 @@ export class AudioEngine {
     this.masterSum.connect(this.limiter); this.limiter.connect(this.master);
     this.master.connect(this.analyser.input); this.analyser.input.connect(ctx.destination);
 
-    this.chord = new ChordVoice(ctx, this.chordBus);
-    this.riff = new RiffVoice(ctx, this.riffBus);
-    this.solo = new SoloVoice(ctx, this.soloBus);
+    this.chord = new Instrument(ctx, this.chordBus);
+    this.riff = new Instrument(ctx, this.riffBus);
+    this.solo = new Instrument(ctx, this.soloBus);
   }
 
   async resume(): Promise<void> {
@@ -67,6 +67,9 @@ export class AudioEngine {
     if (!this.started) return;
     this.master.gain.setTargetAtTime(p.masterGain as number, this.now, 0.02);
     this.fx.update(p);
+    this.chord.setLevel(p.chordLevel as number);
+    this.riff.setLevel(p.riffLevel as number);
+    this.solo.setLevel(p.soloLevel as number);
     this.sendChord.gain.value = p.fxSendChord as number;
     this.sendRiff.gain.value = p.fxSendRiff as number;
     this.sendSolo.gain.value = p.fxSendSolo as number;

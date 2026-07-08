@@ -9,7 +9,7 @@ export interface WeaveDeps {
   now: () => number;
   composer: Composer;
   rhythm: () => Rhythm;
-  playChord: (freqs: number[], time: number) => void;
+  playChord: (freqs: number[], time: number, dur: number) => void;
   playRiff: (freq: number, time: number, vel: number, dur: number) => void;
   playSolo: (freq: number, time: number, vel: number, dur: number) => void;
   soloProbe: () => { y: number; mag: number };
@@ -59,7 +59,8 @@ export class WeaveSequencer {
       if (this.cycle % every === 0) c.advanceChord(this.deps.tension());
       if (flags.chord) {
         const freqs = c.chordFreqs(0);
-        this.deps.playChord(freqs, time);
+        const every = Math.max(1, Math.round(p.chordEvery as number));
+        this.deps.playChord(freqs, time, rhythm.length * stepSec * every);
         this.deps.onChord(c.chordRoot, freqs);
       }
     }
