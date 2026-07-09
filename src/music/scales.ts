@@ -44,13 +44,15 @@ export const SCALES: Record<string, Scale> = {
   homayoun:    { name: "Homayoun", region: "Persia", cents: [0,150,400,500,700,800,1000] },
   chahargah:   { name: "Chahargah", region: "Persia", cents: [0,150,400,500,700,850,1100] },
 
-  // ── Japanese ────────────────────────────────────────────────────────
+  // ── Japanese / Ryukyu ───────────────────────────────────────────────
+  ryukyu:      { name: "Ryukyu 琉球", region: "Ryukyu", cents: [0,400,500,700,1100] },
   inSen:       { name: "In / Insen", region: "Japan", cents: [0,100,500,700,1000] },
   yoSen:       { name: "Yo", region: "Japan", cents: [0,200,500,700,900] },
   hirajoshi:   { name: "Hirajoshi", region: "Japan", cents: [0,200,300,700,800] },
   iwato:       { name: "Iwato", region: "Japan", cents: [0,100,500,600,1000] },
   kumoi:       { name: "Kumoi", region: "Japan", cents: [0,200,300,700,900] },
   ritsu:       { name: "Ritsu", region: "Japan", cents: [0,200,500,700,900,1000] },
+  minyo:       { name: "Min'yō", region: "Japan", cents: [0,300,500,700,1000] },
 
   // ── Chinese pentatonic modes ────────────────────────────────────────
   gong:        { name: "Gong", region: "China", cents: [0,200,400,700,900] },
@@ -61,6 +63,7 @@ export const SCALES: Record<string, Scale> = {
 
   // ── Indonesian gamelan (microtonal) ─────────────────────────────────
   slendro:     { name: "Slendro", region: "Gamelan", cents: [0,240,480,720,960] },
+  balinese:    { name: "Balinese", region: "Gamelan", cents: [0,100,300,700,800] },
   pelog:       { name: "Pelog (7)", region: "Gamelan", cents: [0,120,270,540,670,785,945] },
   pelogSelisir:{ name: "Pelog selisir", region: "Gamelan", cents: [0,120,270,670,785] },
 
