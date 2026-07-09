@@ -171,3 +171,37 @@ const STRINGS: Record<Lang, Record<string, string>> = {
   },
 };
 export function t(id: string): string { return STRINGS[current][id] ?? STRINGS.EN[id] ?? id; }
+
+// Scale option labels in kana (shown when JP); EN uses the roman "name (region)" labels.
+const SCALE_JA: Record<string, string> = {
+  ionian: "イオニアン（セイヨウ）", dorian: "ドリアン（セイヨウ）", phrygian: "フリジアン（セイヨウ）",
+  lydian: "リディアン（セイヨウ）", mixolydian: "ミクソリディアン（セイヨウ）", aeolian: "エオリアン（セイヨウ）",
+  locrian: "ロクリアン（セイヨウ）", harmonicMin: "ハーモニックマイナー（セイヨウ）",
+  melodicMin: "メロディックマイナー（セイヨウ）", majorPent: "メジャーペンタ（セイヨウ）",
+  minorPent: "マイナーペンタ（セイヨウ）", blues: "ブルース（アメリカ）", wholeTone: "ホールトーン",
+  bhairav: "バイラヴ（インド）", yaman: "ヤマン（インド）", bhairavi: "バイラヴィ（インド）",
+  todi: "トーディ（インド）", marwa: "マールワ（インド）", kafi: "カーフィー（インド）",
+  asavari: "アサーワリー（インド）", khamaj: "カマージ（インド）",
+  rast: "ラースト（アラブ／トルコ）", bayati: "バヤーティ（アラブ）", hijaz: "ヒジャーズ（アラブ）",
+  saba: "サバー（アラブ）", nahawand: "ナハワンド（アラブ）", kurd: "クルド（アラブ）", ajam: "アジャム（アラブ）",
+  sikah: "シーカー（アラブ）", huzam: "フザーム（アラブ）",
+  shur: "シュール（ペルシャ）", homayoun: "ホマユーン（ペルシャ）", chahargah: "チャハルガー（ペルシャ）",
+  ryukyu: "リュウキュウ（オキナワ）", inSen: "インセン（ニホン）", yoSen: "ヨ（ニホン）",
+  hirajoshi: "ヒラジョウシ（ニホン）", iwato: "イワト（ニホン）", kumoi: "クモイ（ニホン）",
+  ritsu: "リツ（ニホン）", minyo: "ミンヨウ（ニホン）",
+  gong: "ゴン（チュウゴク）", shang: "シャン（チュウゴク）", jiao: "ジャオ（チュウゴク）",
+  zhi: "ヂー（チュウゴク）", yu: "ユー（チュウゴク）",
+  slendro: "スレンドロ（ジャワ）", balinese: "バリニーズ（バリ）", pelog: "ペロッグ（ジャワ）",
+  pelogSelisir: "ペロッグ・スリシール（バリ）",
+  tizitaMaj: "ティザータ・メジャー（エチオピア）", tizitaMin: "ティザータ・マイナー（エチオピア）",
+  bati: "バティ（エチオピア）", ambassel: "アンバッセル（エチオピア）", anchihoye: "アンチホエ（エチオピア）",
+  hungarianMin: "ハンガリアンマイナー（ハンガリー）", doubleHarm: "ダブルハーモニック（ビザンチン）",
+  romanian: "ルーマニアンマイナー（ルーマニア）", ukrainian: "ウクライナ・ドリアン（ウクライナ）",
+  phrygianDom: "フリジアンドミナント（アンダルシア）",
+};
+
+// resolve an enum option's display text: JP kana if available, else the (roman) label, else the id.
+export function enumOptionLabel(id: string, enLabels?: Record<string, string>): string {
+  if (current === "JP") return SCALE_JA[id] ?? enLabels?.[id] ?? id;
+  return enLabels?.[id] ?? id;
+}

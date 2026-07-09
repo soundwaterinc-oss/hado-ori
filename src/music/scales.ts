@@ -83,6 +83,10 @@ export const SCALES: Record<string, Scale> = {
 };
 
 export const SCALE_IDS = Object.keys(SCALES);
+// EN dropdown labels with place/region (value stays the id).
+export const SCALE_LABELS: Record<string, string> = Object.fromEntries(
+  Object.entries(SCALES).map(([id, s]) => [id, `${s.name} (${s.region})`]),
+);
 
 // degree (can exceed scale length → octave wrap). Returns frequency in Hz.
 export function degreeToFreq(tonicHz: number, scaleId: string, degree: number): number {

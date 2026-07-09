@@ -1,7 +1,7 @@
 // params.ts — single source of truth (drives UI, preset, TD send).
 // HADŌ ORI / 波動織 — chords, riffs & solos generated from the wavefield, over world
 // scales & rhythms, with morphing ethnic-geometry visuals.
-import { SCALE_IDS } from "../music/scales";
+import { SCALE_IDS, SCALE_LABELS } from "../music/scales";
 import { RHYTHM_IDS } from "../music/rhythms";
 import { TIMBRE_IDS } from "../audio/timbres";
 import { ENGINES, CLIMATES, CURRENTS, SOILS, WEATHERS } from "../music/arranger";
@@ -10,14 +10,14 @@ export type ParamTab = "PERFORM" | "GEO" | "FIELD" | "SCALE" | "RHYTHM" | "TIMBR
   | "EVOLVE" | "PATTERN" | "MUTATE" | "IO" | "INFO";
 
 export interface NumberParam { kind: "number"; tab: ParamTab; label: string; min: number; max: number; def: number; step?: number; unit?: string }
-export interface EnumParam { kind: "enum"; tab: ParamTab; label: string; options: readonly string[]; def: string }
+export interface EnumParam { kind: "enum"; tab: ParamTab; label: string; options: readonly string[]; def: string; labels?: Record<string, string> }
 export interface BoolParam { kind: "bool"; tab: ParamTab; label: string; def: boolean }
 export type ParamDef = NumberParam | EnumParam | BoolParam;
 
 const n = (tab: ParamTab, label: string, min: number, max: number, def: number, step?: number, unit?: string): NumberParam =>
   ({ kind: "number", tab, label, min, max, def, step, unit });
-const e = (tab: ParamTab, label: string, options: readonly string[], def: string): EnumParam =>
-  ({ kind: "enum", tab, label, options, def });
+const e = (tab: ParamTab, label: string, options: readonly string[], def: string, labels?: Record<string, string>): EnumParam =>
+  ({ kind: "enum", tab, label, options, def, labels });
 const b = (tab: ParamTab, label: string, def: boolean): BoolParam => ({ kind: "bool", tab, label, def });
 
 export const PARAMS = {
@@ -56,7 +56,7 @@ export const PARAMS = {
   warp: n("FIELD", "warp", 0.3, 2.0, 0.8, 0.01),
 
   // ── SCALE ────────────────────────────────────────────────────────────
-  scaleId: e("SCALE", "scale", SCALE_IDS, "yaman"),
+  scaleId: e("SCALE", "scale", SCALE_IDS, "yaman", SCALE_LABELS),
   fRoot: n("SCALE", "tonic", 55, 330, 110, 1, "Hz"),
   chordSize: n("SCALE", "chord tones", 2, 5, 3, 1),
   autoScale: b("SCALE", "auto scale (flux)", false),
