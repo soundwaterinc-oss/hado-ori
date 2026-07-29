@@ -12,8 +12,8 @@ export class AudioEngine {
   readonly riff: Instrument;
   readonly solo: Instrument;
   readonly analyser: Analyser;
+  readonly masterOut: GainNode;
   private fx: FxChain;
-  private master: GainNode;
   private masterSum: GainNode;
   private limiter: DynamicsCompressorNode;
   private chordBus: GainNode;
@@ -30,7 +30,7 @@ export class AudioEngine {
     this.fx = new FxChain(ctx);
     this.analyser = new Analyser(ctx);
     this.masterSum = ctx.createGain();
-    this.master = ctx.createGain(); this.master.gain.value = 0.9;
+    this.masterOut = ctx.createGain(); this.masterOut.gain.value = 0.9;
 
     this.chordBus = ctx.createGain();
     this.riffBus = ctx.createGain();
@@ -49,8 +49,8 @@ export class AudioEngine {
     this.limiter = ctx.createDynamicsCompressor();
     this.limiter.ratio.value = 20; this.limiter.threshold.value = -3;
     this.limiter.attack.value = 0.003; this.limiter.release.value = 0.15;
-    this.masterSum.connect(this.limiter); this.limiter.connect(this.master);
-    this.master.connect(this.analyser.input); this.analyser.input.connect(ctx.destination);
+    this.masterSum.connect(this.limiter); this.limiter.connect(this.masterOut);
+    this.masterOut.connect(this.analyser.input); this.analyser.input.connect(ctx.destination);
 
     this.chord = new Instrument(ctx, this.chordBus);
     this.riff = new Instrument(ctx, this.riffBus);
@@ -65,7 +65,7 @@ export class AudioEngine {
 
   update(_dt: number, features: HadoFeatures, p: ParamState, nowMs: number): void {
     if (!this.started) return;
-    this.master.gain.setTargetAtTime(p.masterGain as number, this.now, 0.02);
+    this.masterOut.gain.setTargetAtTime(p.masterGain as number, this.now, 0.02);
     this.fx.update(p);
     this.chord.setLevel(p.chordLevel as number);
     this.riff.setLevel(p.riffLevel as number);

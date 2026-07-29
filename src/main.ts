@@ -1,7 +1,7 @@
 // main.ts — HADŌ ORI startup + loops. The wavefield generates chord/riff/solo over a world
 // scale & rhythm; the field also morphs an ethnic-geometry pattern; feedback grows both.
 import "./ui/style.css";
-import { defaultState, defaultSettings, type ParamName } from "./core/params";
+import { PARAMS, defaultState, defaultSettings, type ParamName } from "./core/params";
 import { features } from "./core/features";
 import {
   BUILTIN_PRESETS, loadUserPresets, saveUserPreset, applyPreset,
@@ -23,11 +23,28 @@ import { RHYTHMS } from "./music/rhythms";
 import { scaleLength } from "./music/scales";
 import type { TimbreId } from "./audio/timbres";
 
+declare global {
+  interface Window {
+    registerElSystemaInstrument?: (config: {
+      id: string;
+      audioContext?: AudioContext;
+      outputNode?: AudioNode;
+      sharedAnalyser?: AnalyserNode;
+      onPlay?: () => void;
+      onStop?: () => void;
+      onSetParam?: (name: string, value: number) => void;
+      onLoadPreset?: (preset: Record<string, unknown>) => void;
+      onSnapshot?: () => Record<string, unknown>;
+    }) => unknown;
+  }
+}
+
 const FAMILIES = ["MANDALA", "KILIM", "GIRIH", "KNOT", "KOLAM"];
 const PALETTES = ["indigo", "jewel", "earth", "ochre", "mono", "sunset"];
 
 const state = defaultState();
 const settings = defaultSettings();
+const FIELD_ON = /[?&#]field/.test(location.href);
 
 let field: QuantumField;
 let potential: Potential;
@@ -40,6 +57,20 @@ const midi = new MidiOut();
 const td = new TdBridge();
 const composer = new Composer();
 const arranger = new Arranger();
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function lerp(min: number, max: number, t: number): number {
+  return min + (max - min) * clamp01(t);
+}
+
+function setNumberParam(name: ParamName, value: number): void {
+  const def = PARAMS[name];
+  if (def.kind !== "number") return;
+  state[name] = Math.min(def.max, Math.max(def.min, value));
+}
 
 // visual music state (decays each frame)
 let patternHue = 0.5;
@@ -106,6 +137,110 @@ const GEO_PARAMS = new Set<ParamName>([
   "geoMode", "geoModeA", "geoModeB", "seedCount", "angleOffset", "wellDepth", "wellRadius",
   "lsysIterations", "branchAngle", "lsysSeed", "cellCount", "relax", "wallWidth", "wallHeight", "geoMix",
 ]);
+
+function applyParams(patch: Partial<Record<ParamName, number | string | boolean>>): void {
+  let needsRebake = false;
+  let needsRhythm = false;
+  let needsScale = false;
+  for (const key of Object.keys(patch) as ParamName[]) {
+    if (!(key in PARAMS)) continue;
+    const def = PARAMS[key];
+    const value = patch[key];
+    if (value === undefined) continue;
+    if (def.kind === "number" && typeof value === "number") {
+      state[key] = Math.min(def.max, Math.max(def.min, value));
+    } else if (def.kind === "bool" && typeof value === "boolean") {
+      state[key] = value;
+    } else if (def.kind === "enum" && typeof value === "string" && def.options.includes(value)) {
+      state[key] = value;
+    } else {
+      continue;
+    }
+    if (GEO_PARAMS.has(key)) needsRebake = true;
+    if (key === "scaleId") needsScale = true;
+    if (key === "rhythmId") needsRhythm = true;
+    if (key === "fRoot") composer.setTonic(state.fRoot as number);
+    if (key === "chordSize") composer.chordSize = state.chordSize as number;
+  }
+  ui.refreshAll();
+  if (needsRebake) rebakeGeometry();
+  if (needsScale) {
+    syncMusic();
+    composer.regenRiff(rhythm());
+  }
+  if (needsRhythm || needsScale) ui.setCycleLength(rhythm().length);
+}
+
+function snapshotState(): Record<string, unknown> {
+  return { ...state };
+}
+
+function loadSnapshot(preset: Record<string, unknown>): void {
+  const src = preset && typeof preset === "object" && preset.params && typeof preset.params === "object"
+    ? preset.params as Record<string, unknown>
+    : preset;
+  applyParams(src as Partial<Record<ParamName, number | string | boolean>>);
+}
+
+function elsysMacro(name: string, value: number): void {
+  const v = clamp01(value);
+  switch (name) {
+    case "macro.a":
+      applyParams({
+        chordLevel: lerp(0.12, 0.65, v),
+        riffLevel: lerp(0.1, 0.8, v),
+        soloDensity: lerp(0.08, 0.95, v),
+        soloThresh: lerp(0.8, 0.18, v),
+      });
+      break;
+    case "macro.b":
+      applyParams({
+        wellDepth: lerp(0.18, 0.96, v),
+        wellRadius: lerp(0.012, 0.08, v),
+        geoMix: lerp(0, 1, v),
+        fieldWarp: lerp(0.05, 0.95, v),
+        morphAmt: lerp(0.08, 0.9, v),
+      });
+      break;
+    case "macro.c":
+      applyParams({
+        chordCutoff: lerp(400, 4200, v),
+        soloCutoff: lerp(700, 5200, v),
+        drive: lerp(0.02, 0.5, v),
+        delayFb: lerp(0.08, 0.58, v),
+        reverbMix: lerp(0.06, 0.45, v),
+      });
+      break;
+    case "volume":
+      setNumberParam("masterGain", v);
+      ui.refreshAll();
+      break;
+    default:
+      break;
+  }
+}
+
+function registerFieldBridge(): void {
+  if (!FIELD_ON || typeof window.registerElSystemaInstrument !== "function") return;
+  window.registerElSystemaInstrument({
+    id: "hado-ori",
+    audioContext: audio.ctx,
+    outputNode: audio.masterOut,
+    sharedAnalyser: audio.analyser.input,
+    onPlay: () => {
+      void audio.resume();
+      seq.toggle(true);
+      ui.setPlaying(true);
+    },
+    onStop: () => {
+      seq.toggle(false);
+      ui.setPlaying(false);
+    },
+    onSetParam: (name, value) => elsysMacro(name, value),
+    onLoadPreset: (preset) => loadSnapshot(preset),
+    onSnapshot: () => snapshotState(),
+  });
+}
 
 function observe(x: number, y: number): void {
   void audio.resume();
@@ -176,6 +311,7 @@ ui.setCycleLength(rhythm().length);
 mutator.onRebake = () => rebakeGeometry();
 mutator.onWarn = (m) => ui.setWarn(m);
 td.onStatus = (s) => ui.setTdStatus(`TD: ${s}`, s === "open" ? "ok" : s === "error" ? "err" : "");
+registerFieldBridge();
 
 const wake = (): void => { void audio.resume(); };
 window.addEventListener("pointerdown", wake, { once: true });
